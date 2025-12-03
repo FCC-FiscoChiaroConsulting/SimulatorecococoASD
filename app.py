@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+import time
 
 # Configurazione pagina
 st.set_page_config(
@@ -8,6 +9,33 @@ st.set_page_config(
     page_icon="⚽",
     layout="wide"
 )
+
+# ============================================================================
+# MESSAGGIO INIZIALE DI CARICAMENTO
+# ============================================================================
+if 'app_loaded' not in st.session_state:
+    # Container per messaggio di caricamento
+    loading_container = st.empty()
+    
+    with loading_container.container():
+        st.info("🔄 **Caricamento del simulatore in corso...**")
+        st.markdown("""
+        Stiamo preparando il calcolatore per le collaborazioni sportive.  
+        **Attendi circa 20 secondi**, la pagina si aggiornerà automaticamente.
+        
+        ⏳ *Caricamento delle normative fiscali 2025...*
+        """)
+        
+        # Barra di progresso
+        progress_bar = st.progress(0)
+        for percent in range(100):
+            time.sleep(0.2)  # 20 secondi totali (0.2 * 100 = 20)
+            progress_bar.progress(percent + 1)
+    
+    # Rimuovi il messaggio di caricamento
+    loading_container.empty()
+    st.session_state.app_loaded = True
+    st.rerun()
 
 def formatta_euro(valore):
     """Formatta un numero in euro con separatori italiani"""
@@ -171,7 +199,8 @@ with col1:
             "Maestro di sport",
             "Collaboratore amministrativo-gestionale",
             "Altro collaboratore sportivo"
-        ]
+        ],
+        key="tipo_attivita_select"
     )
 
     st.markdown("---")
@@ -185,6 +214,7 @@ with col1:
         max_value=200000,
         value=18000,
         step=1000,
+        key="compenso_lordo_input",
         help="Compenso lordo annuo pattuito con la società sportiva"
     )
 
@@ -195,6 +225,7 @@ with col1:
 
     altra_prev = st.checkbox(
         "Ho già altra pensione o previdenza obbligatoria",
+        key="altra_prev_check",
         help="Se già pensionato o iscritto ad altra cassa, aliquota INPS ridotta al 24%"
     )
 
@@ -211,6 +242,7 @@ with col1:
             max_value=3.33,
             value=1.23,
             step=0.1,
+            key="addizionale_reg_input",
             help="Varia per regione (es. Puglia 1,23%)"
         )
     with col_add2:
@@ -220,6 +252,7 @@ with col1:
             max_value=0.8,
             value=0.5,
             step=0.1,
+            key="addizionale_com_input",
             help="Varia per comune (0-0,8%)"
         )
 
@@ -227,7 +260,7 @@ with col1:
 with col2:
     st.header("📊 Risultati Simulazione")
 
-    # Calcola risultati
+    # Calcola risultati - il calcolo avviene SEMPRE quando un input cambia
     risultato = calcola_cococo_sportivo(
         compenso_lordo,
         tipo_attivita,
@@ -381,12 +414,12 @@ df_comparativo = pd.DataFrame({
     ],
     '% su Lordo': [
         '100%',
-        formatta_percentuale((risultato['contributi_lavoratore']/compenso_lordo)*100),
-        formatta_percentuale((risultato['totale_imposte']/compenso_lordo)*100),
-        formatta_percentuale((risultato['netto_lavoratore']/compenso_lordo)*100),
+        formatta_percentuale((risultato['contributi_lavoratore']/compenso_lordo)*100) if compenso_lordo > 0 else '0%',
+        formatta_percentuale((risultato['totale_imposte']/compenso_lordo)*100) if compenso_lordo > 0 else '0%',
+        formatta_percentuale((risultato['netto_lavoratore']/compenso_lordo)*100) if compenso_lordo > 0 else '0%',
         '',
-        formatta_percentuale((risultato['contributi_societa']/compenso_lordo)*100),
-        formatta_percentuale((risultato['costo_totale_societa']/compenso_lordo)*100)
+        formatta_percentuale((risultato['contributi_societa']/compenso_lordo)*100) if compenso_lordo > 0 else '0%',
+        formatta_percentuale((risultato['costo_totale_societa']/compenso_lordo)*100) if compenso_lordo > 0 else '0%'
     ]
 })
 
@@ -526,3 +559,4 @@ st.markdown("---")
 st.markdown("**Fisco Chiaro Consulting** | © 2025")
 st.markdown("📧 info@fiscochiaroconsulting.it | 🌐 www.fiscochiaroconsulting.it")
 st.markdown("⚽ Specializzati in consulenza fiscale per lavoratori sportivi")
+
