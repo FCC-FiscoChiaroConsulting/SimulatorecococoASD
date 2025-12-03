@@ -1,7 +1,5 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime
-import time
 
 # Configurazione pagina
 st.set_page_config(
@@ -9,33 +7,6 @@ st.set_page_config(
     page_icon="⚽",
     layout="wide"
 )
-
-# ============================================================================ #
-# MESSAGGIO INIZIALE DI CARICAMENTO
-# ============================================================================ #
-if "app_loaded" not in st.session_state:
-    loading_container = st.empty()
-
-    with loading_container.container():
-        st.info("🔄 **Caricamento del simulatore in corso...**")
-        st.markdown(
-            """
-        Stiamo preparando il calcolatore per le collaborazioni sportive.  
-        **Attendi circa 20 secondi**, la pagina si aggiornerà automaticamente.
-        
-        ⏳ *Caricamento delle normative fiscali 2025...*
-        """
-        )
-
-        progress_bar = st.progress(0)
-        for percent in range(100):
-            time.sleep(0.2)  # 20 secondi
-            progress_bar.progress(percent + 1)
-
-    loading_container.empty()
-    st.session_state.app_loaded = True
-    st.rerun()
-
 
 # ============================================================================ #
 # FUNZIONI DI FORMATTAZIONE
@@ -82,17 +53,10 @@ def calcola_cococo_sportivo(
 ) -> dict:
     """
     Calcola imposte, contributi e costi per co.co.co sportivo.
-
-    Parametri:
-    - compenso_lordo: Compenso lordo annuo pattuito
-    - tipo_attivita: Tipo di collaborazione sportiva (solo informativo, non incide sul calcolo)
-    - altra_previdenza: Se ha già altra pensione/previdenza
-    - addizionali_reg: Aliquota addizionale regionale IRPEF
-    - addizionali_com: Aliquota addizionale comunale IRPEF
     """
 
     # ESENZIONI E FRANCHIGIE
-    franchigia_fiscale = min(compenso_lordo, 15000)   # Esenzione fiscale 15.000€
+    franchigia_fiscale = min(compenso_lordo, 15000)      # Esenzione fiscale 15.000€
     franchigia_contributiva = min(compenso_lordo, 5000)  # Esenzione contributiva 5.000€
 
     # BASE CONTRIBUTIVA
@@ -208,7 +172,6 @@ with col1:
             "Collaboratore amministrativo-gestionale",
             "Altro collaboratore sportivo",
         ],
-        key="tipo_attivita_select",
     )
 
     st.markdown("---")
@@ -220,7 +183,6 @@ with col1:
         max_value=200000,
         value=18000,
         step=1000,
-        key="compenso_lordo_input",
         help="Compenso lordo annuo pattuito con la società sportiva",
     )
 
@@ -229,7 +191,6 @@ with col1:
     st.subheader("📊 Situazione previdenziale")
     altra_prev = st.checkbox(
         "Ho già altra pensione o previdenza obbligatoria",
-        key="altra_prev_check",
         help="Se già pensionato o iscritto ad altra cassa, aliquota INPS ridotta al 24%",
     )
 
@@ -244,7 +205,6 @@ with col1:
             max_value=3.33,
             value=1.23,
             step=0.1,
-            key="addizionale_reg_input",
             help="Varia per regione (es. Puglia 1,23%)",
         )
     with col_add2:
@@ -254,13 +214,15 @@ with col1:
             max_value=0.8,
             value=0.5,
             step=0.1,
-            key="addizionale_com_input",
             help="Varia per comune (0-0,8%)",
         )
 
 # --------------------------- COLONNA DESTRA - RISULTATI --------------------- #
 with col2:
     st.header("📊 Risultati Simulazione")
+
+    # DEBUG: per vedere che il valore cambia davvero
+    st.caption(f"Compenso usato nel calcolo: {compenso_lordo} €")
 
     risultato = calcola_cococo_sportivo(
         compenso_lordo,
@@ -375,3 +337,122 @@ with col2:
     st.write(
         f"**Reddito imponibile netto:** {formatta_euro(risultato['reddito_imponibile_netto'])}"
     )
+
+    st.markdown("---")
+
+    st.write(f"**IRPEF (scaglioni):** {formatta_euro(risultato['irpef'])}")
+    if risultato["addizionale_regionale"] > 0:
+        st.write(
+            f"**Addizionale regionale ({formatta_percentuale(addizionale_reg, 2)}):** "
+            f"{formatta_euro(risultato['addizionale_regionale'])}"
+        )
+    if risultato["addizionale_comunale"] > 0:
+        st.write(
+            f"**Addizionale comunale ({formatta_percentuale(addizionale_com, 2)}):** "
+            f"{formatta_euro(risultato['addizionale_comunale'])}"
+        )
+
+    st.write(f"**Totale imposte:** {formatta_euro(risultato['totale_imposte'])}")
+
+    st.markdown("---")
+    st.subheader("📋 Riepilogo Finale")
+
+    st.write(f"**Compenso lordo:** {formatta_euro(risultato['compenso_lordo'])}")
+    st.write(
+        f"├─ Contributi INPS lavoratore: -{formatta_euro(risultato['contributi_lavoratore'])}"
+    )
+    st.write(
+        f"└─ Imposte (IRPEF + add.): -{formatta_euro(risultato['totale_imposte'])}"
+    )
+    st.write(
+        f"**= NETTO LAVORATORE:** {formatta_euro(risultato['netto_lavoratore'])}"
+    )
+
+    st.markdown("---")
+
+    st.write("**Costo per la società sportiva:**")
+    st.write(f"├─ Compenso lordo: {formatta_euro(risultato['compenso_lordo'])}")
+    st.write(
+        f"└─ Contributi INPS società (2/3): +{formatta_euro(risultato['contributi_societa'])}"
+    )
+    st.write(
+        f"**= COSTO TOTALE SOCIETÀ:** {formatta_euro(risultato['costo_totale_societa'])}"
+    )
+
+# ============================================================================ #
+# TABELLA COMPARATIVA
+# ============================================================================ #
+st.markdown("---")
+st.subheader("📊 Tabella Comparativa")
+
+df_comparativo = pd.DataFrame(
+    {
+        "Voce": [
+            "Compenso Lordo",
+            "Contributi Lavoratore (1/3)",
+            "Imposte (IRPEF + add.)",
+            "NETTO LAVORATORE",
+            "",
+            "Contributi Società (2/3)",
+            "COSTO TOTALE SOCIETÀ",
+        ],
+        "Importo": [
+            formatta_euro(risultato["compenso_lordo"]),
+            formatta_euro(risultato["contributi_lavoratore"]),
+            formatta_euro(risultato["totale_imposte"]),
+            formatta_euro(risultato["netto_lavoratore"]),
+            "",
+            formatta_euro(risultato["contributi_societa"]),
+            formatta_euro(risultato["costo_totale_societa"]),
+        ],
+        "% su Lordo": [
+            "100%",
+            formatta_percentuale(
+                (risultato["contributi_lavoratore"] / compenso_lordo) * 100
+            )
+            if compenso_lordo > 0
+            else "0%",
+            formatta_percentuale(
+                (risultato["totale_imposte"] / compenso_lordo) * 100
+            )
+            if compenso_lordo > 0
+            else "0%",
+            formatta_percentuale(
+                (risultato["netto_lavoratore"] / compenso_lordo) * 100
+            )
+            if compenso_lordo > 0
+            else "0%",
+            "",
+            formatta_percentuale(
+                (risultato["contributi_societa"] / compenso_lordo) * 100
+            )
+            if compenso_lordo > 0
+            else "0%",
+            formatta_percentuale(
+                (risultato["costo_totale_societa"] / compenso_lordo) * 100
+            )
+            if compenso_lordo > 0
+            else "0%",
+        ],
+    }
+)
+
+st.table(df_comparativo)
+
+# ============================================================================ #
+# FOOTER
+# ============================================================================ #
+st.markdown("---")
+st.warning(
+    """
+**⚠️ Disclaimer:** Questo simulatore è indicativo e basato sulla normativa vigente 
+(D.Lgs. 36/2021 - Riforma dello Sport, Circolare INPS n. 27/2025). 
+Per un calcolo preciso e personalizzato, contattaci per una consulenza specifica.
+"""
+)
+
+st.markdown("---")
+st.markdown("**Fisco Chiaro Consulting** | © 2025")
+st.markdown("📧 info@fiscochiaroconsulting.it | 🌐 www.fiscochiaroconsulting.it")
+st.markdown("⚽ Specializzati in consulenza fiscale per lavoratori sportivi")
+
