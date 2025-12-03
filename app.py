@@ -1,658 +1,521 @@
+import streamlit as st
+import pandas as pd
+from datetime import datetime
 
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulatore Co.Co.Co Sportivo 2025</title>
+# =====================================================================
+# CONFIGURAZIONE PAGINA
+# =====================================================================
+st.set_page_config(
+    page_title="Simulatore Co.Co.Co Lavoratori Sportivi 2025",
+    page_icon="⚽",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# CSS personalizzato
+st.markdown("""
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1f77b4 0%, #0d47a1 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1f77b4 0%, #0d47a1 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.95;
-        }
-
-        .info-box {
-            background: #e3f2fd;
-            border-left: 5px solid #1f77b4;
-            padding: 20px;
-            margin: 20px;
-            border-radius: 8px;
-            color: #0d47a1;
-            font-size: 0.95em;
-            line-height: 1.6;
-        }
-
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            padding: 40px;
-        }
-
-        .section {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .section-title {
-            font-size: 1.4em;
-            font-weight: 600;
-            color: #1f77b4;
-            border-bottom: 2px solid #1f77b4;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .form-group label {
-            font-weight: 500;
-            color: #333;
-            font-size: 0.95em;
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 1em;
-            transition: all 0.3s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #1f77b4;
-            box-shadow: 0 0 0 3px rgba(31, 119, 180, 0.1);
-            background-color: #f5f9ff;
-        }
-
-        .form-group input[type="number"] {
-            font-family: 'Courier New', monospace;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px;
-            background: #f9f9f9;
-            border-radius: 6px;
-        }
-
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: #1f77b4;
-        }
-
-        .checkbox-group label {
-            cursor: pointer;
-            margin: 0;
-            font-size: 0.95em;
-        }
-
-        .metric {
-            background: linear-gradient(135deg, #1f77b4 0%, #0d47a1 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .metric-title {
-            font-size: 0.85em;
-            opacity: 0.9;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .metric-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            font-family: 'Courier New', monospace;
-        }
-
-        .metric-sub {
-            font-size: 0.75em;
-            opacity: 0.8;
-            margin-top: 5px;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .detail-box {
-            background: #f5f5f5;
-            padding: 15px;
-            border-radius: 6px;
-            margin: 10px 0;
-            border-left: 3px solid #1f77b4;
-        }
-
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
-            font-size: 0.95em;
-        }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            font-weight: 500;
-            color: #333;
-        }
-
-        .detail-value {
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-            color: #1f77b4;
-        }
-
-        .total-row {
-            background: #e3f2fd;
-            padding: 12px;
-            border-radius: 4px;
-            font-size: 1.05em;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .success-value {
-            color: #28a745;
-            font-weight: 700;
-        }
-
-        .warning-value {
-            color: #ff9800;
-            font-weight: 700;
-        }
-
-        .error-value {
-            color: #d62728;
-            font-weight: 700;
-        }
-
-        .divider {
-            height: 1px;
-            background: #ddd;
-            margin: 20px 0;
-        }
-
-        .footer {
-            background: #f5f5f5;
-            padding: 20px;
-            text-align: center;
-            color: #666;
-            font-size: 0.9em;
-            border-top: 1px solid #ddd;
-        }
-
-        .footer-disclaimer {
-            background: #fff3cd;
-            border-left: 4px solid #ff9800;
-            padding: 15px;
-            margin: 20px;
-            border-radius: 6px;
-            color: #856404;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-
-        @media (max-width: 1024px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-
-            .metrics-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 2em;
-            }
-        }
-
-        .section-subtitle {
-            font-size: 1.05em;
-            font-weight: 600;
-            color: #333;
-            margin-top: 15px;
-            margin-bottom: 10px;
-        }
-
-        .help-text {
-            font-size: 0.85em;
-            color: #666;
-            margin-top: 4px;
-            font-style: italic;
-        }
-
-        .success-badge {
-            display: inline-block;
-            background: #d4edda;
-            color: #155724;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .warning-badge {
-            display: inline-block;
-            background: #fff3cd;
-            color: #856404;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
+    .metric-box {
+        background-color: #f0f8ff;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 5px solid #1f77b4;
+        margin: 10px 0;
+    }
+    .metric-green {
+        background-color: #d4edda;
+        border-left-color: #28a745;
+    }
+    .metric-orange {
+        background-color: #fff3cd;
+        border-left-color: #ff9800;
+    }
+    .metric-red {
+        background-color: #f8d7da;
+        border-left-color: #dc3545;
+    }
     </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>⚽ Simulatore Co.Co.Co</h1>
-            <p>Collaboratori Sportivi 2025</p>
-            <p style="font-size: 0.9em; margin-top: 10px;">D.Lgs. 36/2021 – Riforma dello Sport</p>
-        </div>
+""", unsafe_allow_html=True)
 
-        <div class="info-box">
-            <strong>ℹ️ Collaborazioni Sportive (Co.Co.Co)</strong><br>
-            • 🎯 Esenzione fiscale fino a 15.000€ sui compensi da ASD/SSD<br>
-            • 💰 Esenzione contributiva fino a 5.000€ sui compensi da ASD/SSD<br>
-            • 📉 Dimezzamento 50% della base contributiva sull'eccedenza fino al 31/12/2027<br>
-            • ⚖️ Contributi ripartiti: 1/3 collaboratore – 2/3 ASD/SSD<br>
-            • 🧾 La società sportiva è sostituto d'imposta
-        </div>
+# =====================================================================
+# FUNZIONI DI UTILITÀ
+# =====================================================================
+def formatta_euro(valore):
+    """Formatta un numero in euro con separatori italiani."""
+    return f"€ {valore:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-        <div class="content">
-            <!-- COLONNA SINISTRA: INPUT -->
-            <div class="section">
-                <h2 class="section-title">📝 Dati di Input</h2>
+def formatta_percentuale(valore, decimali=2):
+    """Formatta una percentuale con virgola italiana."""
+    return f"{valore:.{decimali}f}%".replace(".", ",")
 
-                <div class="form-group">
-                    <label for="tipo_attivita">Tipo di collaborazione sportiva</label>
-                    <select id="tipo_attivita" onchange="calcola()">
-                        <option value="Istruttore/Allenatore">Collaboratore sportivo (istruttore/allenatore)</option>
-                        <option value="Amministrativo-gestionale">Collaboratore amministrativo-gestionale</option>
-                        <option value="Preparatore atletico">Preparatore atletico</option>
-                        <option value="Maestro di sport">Maestro di sport</option>
-                        <option value="Altro">Altro collaboratore sportivo</option>
-                    </select>
-                </div>
+def calcola_irpef(reddito_imponibile):
+    """
+    Calcola IRPEF con scaglioni 2025.
+    - 0-28.000€: 23%
+    - 28.001-50.000€: 35%
+    - oltre 50.000€: 43%
+    """
+    if reddito_imponibile <= 0:
+        return 0.0
+    elif reddito_imponibile <= 28000:
+        return reddito_imponibile * 0.23
+    elif reddito_imponibile <= 50000:
+        return 28000 * 0.23 + (reddito_imponibile - 28000) * 0.35
+    else:
+        return 28000 * 0.23 + 22000 * 0.35 + (reddito_imponibile - 50000) * 0.43
 
-                <div class="divider"></div>
+def calcola_cococo_sportivo(compenso_lordo, altra_previdenza=False, addizionali_reg=0.0, addizionali_com=0.0):
+    """
+    Calcola imposte, contributi e costi per collaboratore sportivo in Co.Co.Co.
 
-                <h3 class="section-subtitle">💰 Compensi Annui</h3>
-                <div class="form-group">
-                    <label for="compenso_lordo">Compenso lordo annuo Co.Co.Co (€)</label>
-                    <input type="number" id="compenso_lordo" min="0" max="200000" value="18000" step="1000" onchange="calcola()" oninput="calcola()">
-                    <span class="help-text">Totale compensi annui corrisposti da ASD/SSD</span>
-                </div>
+    D.Lgs. 36/2021 - Riforma dello Sport
+    - Esenzione fiscale: 15.000€
+    - Esenzione contributiva: 5.000€
+    - Dimezzamento base contributiva eccedenza: 50% fino al 31/12/2027
+    - Ripartizione contributi: 1/3 lavoratore, 2/3 società
+    """
 
-                <div class="divider"></div>
+    # FRANCHIGIE
+    franchigia_fiscale = min(compenso_lordo, 15000.0)
+    franchigia_contributiva = min(compenso_lordo, 5000.0)
 
-                <h3 class="section-subtitle">📊 Situazione Previdenziale</h3>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="altra_prev" onchange="calcola()">
-                    <label for="altra_prev">Ho già altra pensione o previdenza obbligatoria</label>
-                </div>
-                <span class="help-text" style="margin-left: 0;">Se pensionato o iscritto ad altra forma previdenziale, aliquota IVS ridotta al 24%</span>
+    # BASE CONTRIBUTIVA
+    base_contrib_grezza = max(0.0, compenso_lordo - franchigia_contributiva)
+    base_contrib_ridotta = base_contrib_grezza * 0.50  # Dimezzamento 50%
 
-                <div class="divider"></div>
+    # ALIQUOTE INPS GESTIONE SEPARATA
+    if altra_previdenza:
+        aliquota_ivs = 24.0
+    else:
+        aliquota_ivs = 25.0
+    aliquota_aggiuntiva = 2.03  # maternità, malattia, ANF, DIS-COLL
 
-                <h3 class="section-subtitle">🏛️ Addizionali IRPEF</h3>
-                <div class="form-group">
-                    <label for="addizionale_reg">Addizionale regionale (%)</label>
-                    <input type="number" id="addizionale_reg" min="0" max="3.33" value="1.23" step="0.1" onchange="calcola()" oninput="calcola()">
-                    <span class="help-text">Es. Puglia 1,23%, Lombardia 1,23%, etc.</span>
-                </div>
+    # CALCOLO CONTRIBUTI
+    contributi_ivs = base_contrib_ridotta * (aliquota_ivs / 100.0)
+    contributi_aggiuntivi = base_contrib_grezza * (aliquota_aggiuntiva / 100.0)
+    totale_contributi_inps = contributi_ivs + contributi_aggiuntivi
 
-                <div class="form-group">
-                    <label for="addizionale_com">Addizionale comunale (%)</label>
-                    <input type="number" id="addizionale_com" min="0" max="0.8" value="0.5" step="0.1" onchange="calcola()" oninput="calcola()">
-                    <span class="help-text">Solitamente tra 0% e 0,8%</span>
-                </div>
-            </div>
+    contributi_lavoratore = totale_contributi_inps / 3.0
+    contributi_societa = totale_contributi_inps * 2.0 / 3.0
 
-            <!-- COLONNA DESTRA: RISULTATI -->
-            <div class="section">
-                <h2 class="section-title">📊 Risultati Calcolo</h2>
+    # BASE FISCALE
+    reddito_imponibile = max(0.0, compenso_lordo - franchigia_fiscale)
+    reddito_imponibile_netto = max(0.0, reddito_imponibile - contributi_lavoratore)
 
-                <div class="metrics-grid">
-                    <div class="metric">
-                        <div class="metric-title">Compenso Lordo</div>
-                        <div class="metric-value" id="display_lordo">€ 0,00</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-title">Netto Lavoratore</div>
-                        <div class="metric-value" id="display_netto">€ 0,00</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-title">Netto Mensile</div>
-                        <div class="metric-value" id="display_netto_mese">€ 0,00</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-title">Tax Rate Effettivo</div>
-                        <div class="metric-value" id="display_tax_rate">0,00%</div>
-                    </div>
-                </div>
+    # CALCOLO IMPOSTE
+    irpef = calcola_irpef(reddito_imponibile_netto)
+    addizionale_regionale = reddito_imponibile_netto * (addizionali_reg / 100.0)
+    addizionale_comunale = reddito_imponibile_netto * (addizionali_com / 100.0)
+    totale_imposte = irpef + addizionale_regionale + addizionale_comunale
 
-                <div class="detail-box">
-                    <div class="section-subtitle">💼 Panoramica Generale</div>
-                    <div class="detail-row">
-                        <span class="detail-label">Tipo collaborazione:</span>
-                        <span class="detail-value" id="display_tipo">—</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Costo totale società:</span>
-                        <span class="detail-value" id="display_costo_societa">€ 0,00</span>
-                    </div>
-                </div>
+    # RISULTATI FINALI
+    totale_trattenute_lavoratore = contributi_lavoratore + totale_imposte
+    netto_lavoratore = compenso_lordo - totale_trattenute_lavoratore
+    costo_totale_societa = compenso_lordo + contributi_societa
 
-                <div class="divider"></div>
+    tax_rate = (totale_trattenute_lavoratore / compenso_lordo * 100.0) if compenso_lordo > 0 else 0.0
 
-                <div class="detail-box">
-                    <div class="section-subtitle">💼 Dettaglio Contributivo</div>
-                    
-                    <div id="esenz_contrib" style="display:none;">
-                        <div class="success-badge">✅ Esenzione contributiva applicata</div>
-                    </div>
+    return {
+        "compenso_lordo": compenso_lordo,
+        "franchigia_fiscale": franchigia_fiscale,
+        "franchigia_contributiva": franchigia_contributiva,
+        "base_contrib_grezza": base_contrib_grezza,
+        "base_contrib_ridotta": base_contrib_ridotta,
+        "aliquota_ivs": aliquota_ivs,
+        "aliquota_aggiuntiva": aliquota_aggiuntiva,
+        "contributi_ivs": contributi_ivs,
+        "contributi_aggiuntivi": contributi_aggiuntivi,
+        "totale_contributi": totale_contributi_inps,
+        "contributi_lavoratore": contributi_lavoratore,
+        "contributi_societa": contributi_societa,
+        "reddito_imponibile": reddito_imponibile,
+        "reddito_imponibile_netto": reddito_imponibile_netto,
+        "irpef": irpef,
+        "addizionale_regionale": addizionale_regionale,
+        "addizionale_comunale": addizionale_comunale,
+        "totale_imposte": totale_imposte,
+        "totale_trattenute_lavoratore": totale_trattenute_lavoratore,
+        "netto_lavoratore": netto_lavoratore,
+        "costo_totale_societa": costo_totale_societa,
+        "tax_rate": tax_rate,
+    }
 
-                    <div class="detail-row">
-                        <span class="detail-label">Compenso lordo:</span>
-                        <span class="detail-value" id="contrib_lordo">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Franchigia (5.000€):</span>
-                        <span class="detail-value success-value" id="contrib_franchigia">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Eccedenza contributiva:</span>
-                        <span class="detail-value" id="contrib_eccedenza">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Base dimezzata 50% (agevolazione):</span>
-                        <span class="detail-value warning-value" id="contrib_dimezzata">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Aliquota IVS:</span>
-                        <span class="detail-value" id="contrib_aliquota">0,00%</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Contributi IVS:</span>
-                        <span class="detail-value" id="contrib_ivs">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Contributi aggiuntivi (2,03%):</span>
-                        <span class="detail-value" id="contrib_aggiuntivi">€ 0,00</span>
-                    </div>
-                    <div class="detail-row" style="border-bottom: 2px solid #1f77b4; padding-bottom: 10px; margin-bottom: 10px;">
-                        <span class="detail-label"><strong>Totale contributi INPS:</strong></span>
-                        <span class="detail-value" id="contrib_totale" style="color: #d62728;">€ 0,00</span>
-                    </div>
-
-                    <div class="detail-row">
-                        <span class="detail-label">Quota lavoratore (1/3):</span>
-                        <span class="detail-value" id="contrib_lavoratore">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Quota società (2/3):</span>
-                        <span class="detail-value" id="contrib_societa">€ 0,00</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="detail-box">
-                    <div class="section-subtitle">🧮 Dettaglio Fiscale (IRPEF)</div>
-                    
-                    <div id="esenz_fiscal" style="display:none;">
-                        <div class="success-badge">✅ Esenzione fiscale applicata</div>
-                    </div>
-
-                    <div class="detail-row">
-                        <span class="detail-label">Franchigia fiscale (15.000€):</span>
-                        <span class="detail-value success-value" id="fiscal_franchigia">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Reddito imponibile lordo:</span>
-                        <span class="detail-value" id="fiscal_redd_lordo">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Contributi deducibili:</span>
-                        <span class="detail-value" id="fiscal_contributi_ded">€ 0,00</span>
-                    </div>
-                    <div class="detail-row" style="border-bottom: 2px solid #1f77b4; padding-bottom: 10px; margin-bottom: 10px;">
-                        <span class="detail-label"><strong>Reddito imponibile netto:</strong></span>
-                        <span class="detail-value" id="fiscal_redd_netto">€ 0,00</span>
-                    </div>
-
-                    <div class="detail-row">
-                        <span class="detail-label">IRPEF (scaglioni):</span>
-                        <span class="detail-value error-value" id="fiscal_irpef">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Addizionale regionale:</span>
-                        <span class="detail-value" id="fiscal_add_reg">€ 0,00</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Addizionale comunale:</span>
-                        <span class="detail-value" id="fiscal_add_com">€ 0,00</span>
-                    </div>
-                    <div class="detail-row" style="border-bottom: 2px solid #1f77b4; padding-bottom: 10px; margin-bottom: 10px;">
-                        <span class="detail-label"><strong>Totale imposte:</strong></span>
-                        <span class="detail-value error-value" id="fiscal_totale">€ 0,00</span>
-                    </div>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="total-row">
-                    <span>Compenso lordo:</span>
-                    <span id="riepilogo_lordo">€ 0,00</span>
-                </div>
-                <div style="padding: 8px 0; display: flex; justify-content: space-between; font-size: 0.9em;">
-                    <span>├─ Contributi INPS:</span>
-                    <span id="riepilogo_contrib" style="color: #d62728;">€ 0,00</span>
-                </div>
-                <div style="padding: 8px 0; display: flex; justify-content: space-between; font-size: 0.9em;">
-                    <span>└─ Imposte IRPEF + add.:</span>
-                    <span id="riepilogo_imposte" style="color: #d62728;">€ 0,00</span>
-                </div>
-                <div class="total-row" style="background: #d4edda; color: #155724; margin-top: 10px;">
-                    <span><strong>= NETTO LAVORATORE:</strong></span>
-                    <span id="riepilogo_netto">€ 0,00</span>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="total-row" style="background: #f5f5f5; color: #333;">
-                    <span><strong>Costo TOTALE Società (ASD/SSD):</strong></span>
-                    <span id="riepilogo_costo_societa">€ 0,00</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer-disclaimer">
-            <strong>⚠️ Disclaimer:</strong> Questo simulatore è indicativo e basato su regole generali della riforma dello sport (D.Lgs. 36/2021). 
-            Non sostituisce una consulenza personalizzata che tenga conto di tutti i redditi, detrazioni e situazioni individuali. 
-            Verifica sempre con un commercialista prima di firmare contratti.
-        </div>
-
-        <div class="footer">
-            <p><strong>⚽ Fisco Chiaro Consulting</strong></p>
-            <p>Simulatore Co.Co.Co Sportivo 2025 | © 2025</p>
-            <p style="margin-top: 10px; opacity: 0.7;">Specializzati in collaborazioni sportive e riforma del lavoro sportivo</p>
-        </div>
+# =====================================================================
+# HEADER
+# =====================================================================
+st.markdown("""
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #1f77b4; margin-bottom: 5px;">⚽ Simulatore Co.Co.Co</h1>
+        <h2 style="color: #555; font-size: 1.5em; margin-bottom: 10px;">Collaboratori Sportivi 2025</h2>
+        <p style="color: #888; font-size: 1.1em;"><strong>by Fisco Chiaro Consulting</strong></p>
     </div>
+""", unsafe_allow_html=True)
 
-    <script>
-        function formattaEuro(valore) {
-            return new Intl.NumberFormat('it-IT', {
-                style: 'currency',
-                currency: 'EUR',
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }).format(valore);
-        }
+# Info box
+st.info(
+    "**ℹ️ Collaborazioni Sportive (Co.Co.Co) – Riforma dello Sport (D.Lgs. 36/2021)**\n\n"
+    "🎯 **Esenzione fiscale:** fino a 15.000€ sui compensi da ASD/SSD\n"
+    "💰 **Esenzione contributiva:** fino a 5.000€ sui compensi da ASD/SSD\n"
+    "📉 **Dimezzamento 50%** della base contributiva sull'eccedenza fino al 31/12/2027\n"
+    "⚖️ **Contributi ripartiti:** 1/3 collaboratore – 2/3 ASD/SSD\n"
+    "🧾 **La società sportiva è sostituto d'imposta:** ritenute, versamenti e Certificazione Unica"
+)
 
-        function calcolaIRPEF(redditoImponibile) {
-            if (redditoImponibile <= 0) return 0;
-            if (redditoImponibile <= 28000) {
-                return redditoImponibile * 0.23;
-            }
-            if (redditoImponibile <= 50000) {
-                return 28000 * 0.23 + (redditoImponibile - 28000) * 0.35;
-            }
-            return 28000 * 0.23 + 22000 * 0.35 + (redditoImponibile - 50000) * 0.43;
-        }
+st.markdown("---")
 
-        function calcola() {
-            // INPUT
-            const compensoLordo = parseFloat(document.getElementById('compenso_lordo').value) || 0;
-            const altraPrevidenza = document.getElementById('altra_prev').checked;
-            const additionalReg = parseFloat(document.getElementById('addizionale_reg').value) || 0;
-            const additionalCom = parseFloat(document.getElementById('addizionale_com').value) || 0;
-            const tipoAttivita = document.getElementById('tipo_attivita').value;
+# =====================================================================
+# LAYOUT A DUE COLONNE
+# =====================================================================
+col_input, col_risultati = st.columns(2)
 
-            // FRANCHIGIE
-            const franchiGiaFiscale = Math.min(compensoLordo, 15000);
-            const franchiGiaContributiva = Math.min(compensoLordo, 5000);
+# =====================================================================
+# COLONNA SINISTRA - INPUT
+# =====================================================================
+with col_input:
+    st.header("📝 Dati di Input")
 
-            // BASE CONTRIBUTIVA
-            const baseContribGretta = Math.max(0, compensoLordo - franchiGiaContributiva);
-            const baseContribRidotta = baseContribGretta * 0.50;
+    st.subheader("Tipo di collaborazione sportiva")
+    tipo_attivita = st.selectbox(
+        "Seleziona la tua attività",
+        [
+            "Collaboratore sportivo (istruttore/allenatore)",
+            "Collaboratore amministrativo-gestionale",
+            "Preparatore atletico",
+            "Maestro di sport",
+            "Altro collaboratore sportivo",
+        ],
+        key="tipo_attivita"
+    )
 
-            // ALIQUOTE INPS
-            const aliquotaIvs = altraPrevidenza ? 24 : 25;
-            const aliquotaAggiuntiva = 2.03;
+    st.markdown("---")
 
-            // CONTRIBUTI
-            const contributiIvs = baseContribRidotta * (aliquotaIvs / 100);
-            const contributiAggiuntivi = baseContribGretta * (aliquotaAggiuntiva / 100);
-            const totaleContributiInps = contributiIvs + contributiAggiuntivi;
+    st.subheader("💰 Compensi annui")
 
-            const contributiLavoratore = totaleContributiInps / 3;
-            const contributiSocieta = totaleContributiInps * 2 / 3;
+    compenso_lordo = st.number_input(
+        "Compenso lordo annuo Co.Co.Co (€)",
+        min_value=0,
+        max_value=200000,
+        value=18000,
+        step=500,
+        key="compenso_cococo",
+        help="Totale compensi annui corrisposti da ASD/SSD con contratto di collaborazione coordinata e continuativa."
+    )
 
-            // BASE FISCALE
-            const redditoImponibile = Math.max(0, compensoLordo - franchiGiaFiscale);
-            const redditoImponibileNetto = Math.max(0, redditoImponibile - contributiLavoratore);
+    st.markdown("---")
 
-            // IMPOSTE
-            const irpef = calcolaIRPEF(redditoImponibileNetto);
-            const additionalRegionale = redditoImponibileNetto * (additionalReg / 100);
-            const additionalComunale = redditoImponibileNetto * (additionalCom / 100);
-            const totaleImposte = irpef + additionalRegionale + additionalComunale;
+    st.subheader("📊 Situazione previdenziale")
+    altra_prev = st.checkbox(
+        "Ho già altra pensione o previdenza obbligatoria",
+        value=False,
+        key="altra_prev",
+        help="Se sei pensionato o iscritto ad altra forma previdenziale obbligatoria, l'aliquota IVS è ridotta al 24%."
+    )
 
-            // RISULTATI FINALI
-            const totaleTrattenute = contributiLavoratore + totaleImposte;
-            const nettoLavoratore = compensoLordo - totaleTrattenute;
-            const costoTotaleSocieta = compensoLordo + contributiSocieta;
-            const taxRate = compensoLordo > 0 ? (totaleTrattenute / compensoLordo * 100) : 0;
+    st.markdown("---")
 
-            // AGGIORNA DISPLAY - METRICHE PRINCIPALI
-            document.getElementById('display_lordo').textContent = formattaEuro(compensoLordo);
-            document.getElementById('display_netto').textContent = formattaEuro(nettoLavoratore);
-            document.getElementById('display_netto_mese').textContent = formattaEuro(nettoLavoratore / 12);
-            document.getElementById('display_tax_rate').textContent = taxRate.toFixed(2).replace('.', ',') + '%';
-            document.getElementById('display_tipo').textContent = tipoAttivita;
-            document.getElementById('display_costo_societa').textContent = formattaEuro(costoTotaleSocieta);
+    st.subheader("🏛️ Addizionali IRPEF (opzionale)")
 
-            // DETTAGLIO CONTRIBUTIVO
-            document.getElementById('contrib_lordo').textContent = formattaEuro(compensoLordo);
-            document.getElementById('contrib_franchigia').textContent = formattaEuro(franchiGiaContributiva);
-            document.getElementById('contrib_eccedenza').textContent = formattaEuro(baseContribGretta);
-            document.getElementById('contrib_dimezzata').textContent = formattaEuro(baseContribRidotta);
-            document.getElementById('contrib_aliquota').textContent = aliquotaIvs.toFixed(0) + '%';
-            document.getElementById('contrib_ivs').textContent = formattaEuro(contributiIvs);
-            document.getElementById('contrib_aggiuntivi').textContent = formattaEuro(contributiAggiuntivi);
-            document.getElementById('contrib_totale').textContent = formattaEuro(totaleContributiInps);
-            document.getElementById('contrib_lavoratore').textContent = formattaEuro(contributiLavoratore);
-            document.getElementById('contrib_societa').textContent = formattaEuro(contributiSocieta);
+    col_add1, col_add2 = st.columns(2)
+    with col_add1:
+        addizionale_reg = st.number_input(
+            "Addizionale regionale (%)",
+            min_value=0.0,
+            max_value=3.33,
+            value=1.23,
+            step=0.05,
+            key="addizionale_reg",
+            help="Aliquota addizionale regionale IRPEF (es. Puglia 1,23%)"
+        )
 
-            // MOSTRA BADGE ESENZIONE
-            document.getElementById('esenz_contrib').style.display = franchiGiaContributiva > 0 ? 'block' : 'none';
+    with col_add2:
+        addizionale_com = st.number_input(
+            "Addizionale comunale (%)",
+            min_value=0.0,
+            max_value=0.8,
+            value=0.5,
+            step=0.05,
+            key="addizionale_com",
+            help="Aliquota addizionale comunale IRPEF (0–0,8%)"
+        )
 
-            // DETTAGLIO FISCALE
-            document.getElementById('fiscal_franchigia').textContent = formattaEuro(franchiGiaFiscale);
-            document.getElementById('fiscal_redd_lordo').textContent = formattaEuro(redditoImponibile);
-            document.getElementById('fiscal_contributi_ded').textContent = formattaEuro(contributiLavoratore);
-            document.getElementById('fiscal_redd_netto').textContent = formattaEuro(redditoImponibileNetto);
-            document.getElementById('fiscal_irpef').textContent = formattaEuro(irpef);
-            document.getElementById('fiscal_add_reg').textContent = formattaEuro(additionalRegionale);
-            document.getElementById('fiscal_add_com').textContent = formattaEuro(additionalComunale);
-            document.getElementById('fiscal_totale').textContent = formattaEuro(totaleImposte);
+    st.markdown("---")
 
-            // MOSTRA BADGE ESENZIONE FISCALE
-            document.getElementById('esenz_fiscal').style.display = franchiGiaFiscale > 0 ? 'block' : 'none';
+    st.info("ℹ️ I calcoli si aggiornano automaticamente mentre digiti")
 
-            // RIEPILOGO FINALE
-            document.getElementById('riepilogo_lordo').textContent = formattaEuro(compensoLordo);
-            document.getElementById('riepilogo_contrib').textContent = formattaEuro(contributiLavoratore);
-            document.getElementById('riepilogo_imposte').textContent = formattaEuro(totaleImposte);
-            document.getElementById('riepilogo_netto').textContent = formattaEuro(nettoLavoratore);
-            document.getElementById('riepilogo_costo_societa').textContent = formattaEuro(costoTotaleSocieta);
-        }
+# =====================================================================
+# COLONNA DESTRA - RISULTATI
+# =====================================================================
+with col_risultati:
+    st.header("📊 Risultati Calcolo")
 
-        // Calcolo al caricamento
-        calcola();
-    </script>
-</body>
-</html>
+    # Eseguire il calcolo
+    risultato = calcola_cococo_sportivo(
+        compenso_lordo=compenso_lordo,
+        altra_previdenza=altra_prev,
+        addizionali_reg=addizionale_reg,
+        addizionali_com=addizionale_com
+    )
+
+    # ===== PANORAMICA GENERALE =====
+    st.subheader("💼 Panoramica Generale")
+
+    col_m1, col_m2, col_m3 = st.columns(3)
+
+    with col_m1:
+        st.metric(
+            label="Compenso Lordo",
+            value=formatta_euro(risultato["compenso_lordo"]),
+            help="Compenso lordo annuo pattuito"
+        )
+
+    with col_m2:
+        st.metric(
+            label="Netto Lavoratore",
+            value=formatta_euro(risultato["netto_lavoratore"]),
+            help="Quanto arriva al collaboratore"
+        )
+
+    with col_m3:
+        st.metric(
+            label="Costo Società",
+            value=formatta_euro(risultato["costo_totale_societa"]),
+            help="Costo complessivo per ASD/SSD"
+        )
+
+    col_m4, col_m5 = st.columns(2)
+
+    with col_m4:
+        netto_mensile = risultato["netto_lavoratore"] / 12.0 if risultato["netto_laboratore"] > 0 else 0
+        st.metric(
+            label="Netto Mensile",
+            value=formatta_euro(netto_mensile),
+            help="Media su 12 mensilità"
+        )
+
+    with col_m5:
+        st.metric(
+            label="Tax Rate Effettivo",
+            value=formatta_percentuale(risultato["tax_rate"]),
+            help="Incidenza di contributi e imposte"
+        )
+
+    # ===== DETTAGLIO CONTRIBUTIVO =====
+    st.markdown("---")
+    st.subheader("💼 Dettaglio Calcolo Contributivo")
+
+    st.write(f"**Compenso lordo:** {formatta_euro(compenso_lordo)}")
+
+    if risultato["franchigia_contributiva"] > 0:
+        st.success(
+            f"✅ **Esenzione contributiva (5.000€):** "
+            f"-{formatta_euro(risultato['franchigia_contributiva'])}"
+        )
+
+    if risultato["base_contrib_grezza"] > 0:
+        st.write(f"**Eccedenza contributiva:** {formatta_euro(risultato['base_contrib_grezza'])}")
+        st.info(
+            f"💡 **Dimezzamento 50% (agevolazione fino al 31/12/2027):** "
+            f"{formatta_euro(risultato['base_contrib_grezza'])} × 50% = "
+            f"{formatta_euro(risultato['base_contrib_ridotta'])}"
+        )
+
+    st.write(
+        f"**Aliquota IVS:** {formatta_percentuale(risultato['aliquota_ivs'], 0)} "
+        f"(applicata sulla base dimezzata)"
+    )
+
+    if altra_prev:
+        st.info("✅ Aliquota IVS ridotta (24%) per altra previdenza/pensione")
+
+    st.write(f"**Contributi IVS:** {formatta_euro(risultato['contributi_ivs'])}")
+    st.write(
+        f"**Aliquota aggiuntiva:** {formatta_percentuale(risultato['aliquota_aggiuntiva'])} "
+        f"(applicata sulla base piena)"
+    )
+    st.write(f"**Contributi aggiuntivi:** {formatta_euro(risultato['contributi_aggiuntivi'])}")
+
+    st.write(f"**Totale contributi INPS:** {formatta_euro(risultato['totale_contributi'])}")
+
+    # Ripartizione
+    st.markdown("---")
+    st.subheader("⚖️ Ripartizione Contributi")
+
+    col_r1, col_r2 = st.columns(2)
+    with col_r1:
+        st.metric(
+            "Quota lavoratore (1/3)",
+            formatta_euro(risultato["contributi_lavoratore"]),
+            help="Trattenuti al collaboratore"
+        )
+    with col_r2:
+        st.metric(
+            "Quota società (2/3)",
+            formatta_euro(risultato["contributi_societa"]),
+            help="A carico di ASD/SSD"
+        )
+
+    # ===== DETTAGLIO FISCALE =====
+    st.markdown("---")
+    st.subheader("🧮 Dettaglio Calcolo Fiscale (IRPEF)")
+
+    if risultato["franchigia_fiscale"] > 0:
+        st.success(
+            f"✅ **Esenzione fiscale (15.000€):** "
+            f"-{formatta_euro(risultato['franchigia_fiscale'])}"
+        )
+
+    st.write(f"**Reddito imponibile lordo:** {formatta_euro(risultato['reddito_imponibile'])}")
+    st.write(
+        f"**Contributi deducibili (1/3):** -{formatta_euro(risultato['contributi_lavoratore'])}"
+    )
+    st.write(
+        f"**Reddito imponibile netto IRPEF:** {formatta_euro(risultato['reddito_imponibile_netto'])}"
+    )
+
+    st.write(f"**IRPEF (scaglioni 23-35-43%):** {formatta_euro(risultato['irpef'])}")
+
+    if risultato["addizionale_regionale"] > 0:
+        st.write(
+            f"**Addizionale regionale ({formatta_percentuale(addizionale_reg)}):** "
+            f"{formatta_euro(risultato['addizionale_regionale'])}"
+        )
+
+    if risultato["addizionale_comunale"] > 0:
+        st.write(
+            f"**Addizionale comunale ({formatta_percentuale(addizionale_com)}):** "
+            f"{formatta_euro(risultato['addizionale_comunale'])}"
+        )
+
+    st.write(f"**Totale imposte:** {formatta_euro(risultato['totale_imposte'])}")
+
+    # ===== RIEPILOGO FINALE =====
+    st.markdown("---")
+    st.subheader("📋 Riepilogo Finale Completo")
+
+    st.write(f"**Compenso lordo annuo:** {formatta_euro(risultato['compenso_lordo'])}")
+    st.write(f"├─ Contributi INPS lavoratore: -{formatta_euro(risultato['contributi_lavoratore'])}")
+    st.write(f"└─ Imposte (IRPEF + addizionali): -{formatta_euro(risultato['totale_imposte'])}")
+
+    st.success(f"**= NETTO LAVORATORE ANNUALE:** {formatta_euro(risultato['netto_lavoratore'])}")
+    st.success(f"**= NETTO LAVORATORE MENSILE:** {formatta_euro(netto_mensile)}")
+
+    st.markdown("---")
+    st.write("**Costo complessivo per la società sportiva (ASD/SSD):**")
+    st.write(f"├─ Compenso lordo: {formatta_euro(risultato['compenso_lordo'])}")
+    st.write(f"└─ Contributi INPS società (2/3): +{formatta_euro(risultato['contributi_societa'])}")
+
+    st.warning(f"**= COSTO TOTALE SOCIETÀ:** {formatta_euro(risultato['costo_totale_societa'])}")
+
+# =====================================================================
+# SEZIONE INFO AGGIUNTIVE
+# =====================================================================
+st.markdown("---")
+st.subheader("📚 Informazioni Utili")
+
+with st.expander("🎯 Chi rientra tra i collaboratori sportivi Co.Co.Co?"):
+    st.markdown("""
+Sono inquadrati come **collaboratori sportivi** (Co.Co.Co) ai sensi della riforma dello sport:
+
+- **Istruttori e allenatori** di discipline sportive dilettantistiche
+- **Preparatori atletici**
+- **Collaboratori amministrativo-gestionali** di ASD/SSD
+- **Maestri di sport** e altri collaboratori con mansioni sportive dilettantistiche
+
+Il rapporto deve essere **coordinato e continuativo**, senza vincolo di subordinazione.
+    """)
+
+with st.expander("💰 Esenzioni fiscali e contributive – riepilogo completo"):
+    st.markdown("""
+**Esenzione fiscale 15.000€**
+- I primi **15.000€** di compensi annui da ASD/SSD **non concorrono al reddito IRPEF**
+- L'IRPEF si calcola solo sulla parte eccedente
+- Fonte: Art. 36, comma 6 D.Lgs. 36/2021
+
+**Esenzione contributiva 5.000€ + dimezzamento 50%**
+- I primi **5.000€** di compensi annui da ASD/SSD sono **esenti da contributi INPS**
+- La parte eccedente è assoggettata a contributi, ma la **base è dimezzata (50%)** fino al 31/12/2027
+- I contributi sono ripartiti **1/3 lavoratore – 2/3 ASD/SSD**
+- Fonte: Art. 28 e 38 D.Lgs. 36/2021
+
+**Ritenuta d'acconto**
+- Effettuata dalla società sportiva (sostituto d'imposta)
+- Aliquota: 20% sui compensi lordi
+- Versamento: entro il 16 del mese successivo
+    """)
+
+with st.expander("⚖️ Co.Co.Co sportivo vs Partita IVA forfettaria"):
+    st.markdown("""
+| Aspetto | Co.Co.Co Sportivo | Partita IVA Forfettaria |
+|---------|------------------|------------------------|
+| **Esenzione IRPEF** | Sì, fino a 15.000€ | No |
+| **Esenzione INPS** | Sì, fino a 5.000€ | No |
+| **Base contributiva** | Dimezzata 50% (eccedenza) | Intera |
+| **Contributi a carico** | 1/3 collaboratore, 2/3 società | 100% collaboratore |
+| **Gestione IVA** | No | Sì, ordinaria o forfettaria |
+| **Fatturazione** | No | Sì, obbligatoria |
+| **Sostituto d'imposta** | ASD/SSD | Collaboratore |
+| **Contabilità** | Semplificata | Ordinaria o semplificata |
+| **Complessità** | Bassa | Alta |
+    """)
+
+with st.expander("📋 Obblighi fiscali e scadenze 2025"):
+    st.markdown("""
+**Obblighi della Società Sportiva (ASD/SSD):**
+- ✅ **Comunicazione RASD:** Entro 30 giorni dalla stipula del contratto
+- ✅ **Versamento ritenute IRPEF:** Entro il 16 del mese seguente (F24 con codice tributo 1040)
+- ✅ **Versamento contributi INPS:** Entro il 16 del mese seguente (F24 con codice tributo 4104)
+- ✅ **Certificazione Unica (CU):** Entro il 31 gennaio dell'anno successivo
+- ✅ **Tracciabilità:** Pagamento su conto corrente intestato alla ASD (vietato contante)
+
+**Obblighi del Collaboratore:**
+- ✅ **Conservazione documenti:** 5 anni (contratti, ricevute, CU)
+- ✅ **Dichiarazione dei redditi:** Se la CU della società non è completa
+- ✅ **Aggiornamenti RASD:** Se cambiamenti contrattuali
+
+**Termini principali:**
+- **Versamenti:** Entro il 16 del mese seguente
+- **Certificazione Unica:** 31 gennaio anno successivo
+- **Conservazione:** 5 anni
+    """)
+
+# =====================================================================
+# FOOTER / DISCLAIMER
+# =====================================================================
+st.markdown("---")
+
+col_footer1, col_footer2 = st.columns([1, 1])
+
+with col_footer1:
+    st.warning("""
+⚠️ **DISCLAIMER IMPORTANTE**
+
+Questo simulatore ha finalità **esclusivamente informative** e non sostituisce una consulenza fiscale personalizzata.
+
+- ✅ I calcoli sono basati su norme vigenti (D.Lgs. 36/2021 e aggiornamenti 2025)
+- ⚠️ La situazione fiscale dipende da molteplici fattori individuali
+- 🔄 Verificare sempre aggiornamenti normativi in corso d'anno
+- 📞 Consultare sempre un **commercialista qualificato** per decisioni operative
+    """)
+
+with col_footer2:
+    st.info("""
+**📞 Supporto e Contatti**
+
+**Fisco Chiaro Consulting**
+- 📧 info@fiscochiaroconsulting.it
+- 🌐 www.fiscochiaroconsulting.it
+- 📱 Specializzati in collaborazioni sportive
+- ⚽ Riforma dello sport e lavoro dilettantistico
+
+**Versione:** 1.0 – Dicembre 2025
+**Normativa:** D.Lgs. 36/2021 + aggiornamenti 2025
+    """)
+
+st.markdown("---")
+st.markdown("""
+<div style="text-align: center; color: #888; font-size: 0.9em; margin-top: 30px;">
+    <p>⚽ <strong>Simulatore Co.Co.Co Sportivo</strong> | Fisco Chiaro Consulting</p>
+    <p>Basato su D.Lgs. 36/2021 (Riforma dello Sport) e IRPEF 2025</p>
+    <p>© 2025 – Tutti i diritti riservati</p>
+</div>
+""", unsafe_allow_html=True)
