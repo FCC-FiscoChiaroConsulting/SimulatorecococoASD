@@ -67,54 +67,54 @@ def calcola_irpef(reddito_imponibile):
 def calcola_cococo_sportivo(compenso_lordo, altra_previdenza=False, addizionali_reg=0.0, addizionali_com=0.0):
     """
     Calcola imposte, contributi e costi per collaboratore sportivo in Co.Co.Co.
-
+    
     D.Lgs. 36/2021 - Riforma dello Sport
     - Esenzione fiscale: 15.000€
     - Esenzione contributiva: 5.000€
     - Dimezzamento base contributiva eccedenza: 50% fino al 31/12/2027
     - Ripartizione contributi: 1/3 lavoratore, 2/3 società
     """
-
+    
     # FRANCHIGIE
     franchigia_fiscale = min(compenso_lordo, 15000.0)
     franchigia_contributiva = min(compenso_lordo, 5000.0)
-
+    
     # BASE CONTRIBUTIVA
     base_contrib_grezza = max(0.0, compenso_lordo - franchigia_contributiva)
     base_contrib_ridotta = base_contrib_grezza * 0.50  # Dimezzamento 50%
-
+    
     # ALIQUOTE INPS GESTIONE SEPARATA
     if altra_previdenza:
         aliquota_ivs = 24.0
     else:
         aliquota_ivs = 25.0
     aliquota_aggiuntiva = 2.03  # maternità, malattia, ANF, DIS-COLL
-
+    
     # CALCOLO CONTRIBUTI
     contributi_ivs = base_contrib_ridotta * (aliquota_ivs / 100.0)
     contributi_aggiuntivi = base_contrib_grezza * (aliquota_aggiuntiva / 100.0)
     totale_contributi_inps = contributi_ivs + contributi_aggiuntivi
-
+    
     contributi_lavoratore = totale_contributi_inps / 3.0
     contributi_societa = totale_contributi_inps * 2.0 / 3.0
-
+    
     # BASE FISCALE
     reddito_imponibile = max(0.0, compenso_lordo - franchigia_fiscale)
     reddito_imponibile_netto = max(0.0, reddito_imponibile - contributi_lavoratore)
-
+    
     # CALCOLO IMPOSTE
     irpef = calcola_irpef(reddito_imponibile_netto)
     addizionale_regionale = reddito_imponibile_netto * (addizionali_reg / 100.0)
     addizionale_comunale = reddito_imponibile_netto * (addizionali_com / 100.0)
     totale_imposte = irpef + addizionale_regionale + addizionale_comunale
-
+    
     # RISULTATI FINALI
     totale_trattenute_lavoratore = contributi_lavoratore + totale_imposte
     netto_lavoratore = compenso_lordo - totale_trattenute_lavoratore
     costo_totale_societa = compenso_lordo + contributi_societa
-
+    
     tax_rate = (totale_trattenute_lavoratore / compenso_lordo * 100.0) if compenso_lordo > 0 else 0.0
-
+    
     return {
         "compenso_lordo": compenso_lordo,
         "franchigia_fiscale": franchigia_fiscale,
@@ -153,11 +153,11 @@ st.markdown("""
 
 # Info box
 st.info(
-    "**ℹ️ Collaborazioni Sportive (Co.Co.Co) – Riforma dello Sport (D.Lgs. 36/2021)**\n\n"
-    "🎯 **Esenzione fiscale:** fino a 15.000€ sui compensi da ASD/SSD\n"
-    "💰 **Esenzione contributiva:** fino a 5.000€ sui compensi da ASD/SSD\n"
-    "📉 **Dimezzamento 50%** della base contributiva sull'eccedenza fino al 31/12/2027\n"
-    "⚖️ **Contributi ripartiti:** 1/3 collaboratore – 2/3 ASD/SSD\n"
+    "**ℹ️ Collaborazioni Sportive (Co.Co.Co) – Riforma dello Sport (D.Lgs. 36/2021)**\\n\\n"
+    "🎯 **Esenzione fiscale:** fino a 15.000€ sui compensi da ASD/SSD\\n"
+    "💰 **Esenzione contributiva:** fino a 5.000€ sui compensi da ASD/SSD\\n"
+    "📉 **Dimezzamento 50%** della base contributiva sull'eccedenza fino al 31/12/2027\\n"
+    "⚖️ **Contributi ripartiti:** 1/3 collaboratore – 2/3 ASD/SSD\\n"
     "🧾 **La società sportiva è sostituto d'imposta:** ritenute, versamenti e Certificazione Unica"
 )
 
@@ -173,7 +173,7 @@ col_input, col_risultati = st.columns(2)
 # =====================================================================
 with col_input:
     st.header("📝 Dati di Input")
-
+    
     st.subheader("Tipo di collaborazione sportiva")
     tipo_attivita = st.selectbox(
         "Seleziona la tua attività",
@@ -186,11 +186,11 @@ with col_input:
         ],
         key="tipo_attivita"
     )
-
+    
     st.markdown("---")
-
+    
     st.subheader("💰 Compensi annui")
-
+    
     compenso_lordo = st.number_input(
         "Compenso lordo annuo Co.Co.Co (€)",
         min_value=0,
@@ -200,9 +200,9 @@ with col_input:
         key="compenso_cococo",
         help="Totale compensi annui corrisposti da ASD/SSD con contratto di collaborazione coordinata e continuativa."
     )
-
+    
     st.markdown("---")
-
+    
     st.subheader("📊 Situazione previdenziale")
     altra_prev = st.checkbox(
         "Ho già altra pensione o previdenza obbligatoria",
@@ -210,11 +210,11 @@ with col_input:
         key="altra_prev",
         help="Se sei pensionato o iscritto ad altra forma previdenziale obbligatoria, l'aliquota IVS è ridotta al 24%."
     )
-
+    
     st.markdown("---")
-
+    
     st.subheader("🏛️ Addizionali IRPEF (opzionale)")
-
+    
     col_add1, col_add2 = st.columns(2)
     with col_add1:
         addizionale_reg = st.number_input(
@@ -226,7 +226,7 @@ with col_input:
             key="addizionale_reg",
             help="Aliquota addizionale regionale IRPEF (es. Puglia 1,23%)"
         )
-
+    
     with col_add2:
         addizionale_com = st.number_input(
             "Addizionale comunale (%)",
@@ -237,9 +237,9 @@ with col_input:
             key="addizionale_com",
             help="Aliquota addizionale comunale IRPEF (0–0,8%)"
         )
-
+    
     st.markdown("---")
-
+    
     st.info("ℹ️ I calcoli si aggiornano automaticamente mentre digiti")
 
 # =====================================================================
@@ -247,7 +247,7 @@ with col_input:
 # =====================================================================
 with col_risultati:
     st.header("📊 Risultati Calcolo")
-
+    
     # Eseguire il calcolo
     risultato = calcola_cococo_sportivo(
         compenso_lordo=compenso_lordo,
@@ -255,62 +255,62 @@ with col_risultati:
         addizionali_reg=addizionale_reg,
         addizionali_com=addizionale_com
     )
-
+    
     # ===== PANORAMICA GENERALE =====
     st.subheader("💼 Panoramica Generale")
-
+    
     col_m1, col_m2, col_m3 = st.columns(3)
-
+    
     with col_m1:
         st.metric(
             label="Compenso Lordo",
             value=formatta_euro(risultato["compenso_lordo"]),
             help="Compenso lordo annuo pattuito"
         )
-
+    
     with col_m2:
         st.metric(
             label="Netto Lavoratore",
             value=formatta_euro(risultato["netto_lavoratore"]),
             help="Quanto arriva al collaboratore"
         )
-
+    
     with col_m3:
         st.metric(
             label="Costo Società",
             value=formatta_euro(risultato["costo_totale_societa"]),
             help="Costo complessivo per ASD/SSD"
         )
-
+    
     col_m4, col_m5 = st.columns(2)
-
+    
     with col_m4:
-        netto_mensile = risultato["netto_lavoratore"] / 12.0 if risultato["netto_laboratore"] > 0 else 0
+        netto_mensile = risultato["netto_lavoratore"] / 12.0 if risultato["netto_lavoratore"] > 0 else 0
         st.metric(
             label="Netto Mensile",
             value=formatta_euro(netto_mensile),
             help="Media su 12 mensilità"
         )
-
+    
     with col_m5:
         st.metric(
             label="Tax Rate Effettivo",
             value=formatta_percentuale(risultato["tax_rate"]),
             help="Incidenza di contributi e imposte"
         )
-
+    
     # ===== DETTAGLIO CONTRIBUTIVO =====
     st.markdown("---")
     st.subheader("💼 Dettaglio Calcolo Contributivo")
-
+    
     st.write(f"**Compenso lordo:** {formatta_euro(compenso_lordo)}")
-
+    
     if risultato["franchigia_contributiva"] > 0:
         st.success(
             f"✅ **Esenzione contributiva (5.000€):** "
             f"-{formatta_euro(risultato['franchigia_contributiva'])}"
         )
-
+    
     if risultato["base_contrib_grezza"] > 0:
         st.write(f"**Eccedenza contributiva:** {formatta_euro(risultato['base_contrib_grezza'])}")
         st.info(
@@ -318,28 +318,28 @@ with col_risultati:
             f"{formatta_euro(risultato['base_contrib_grezza'])} × 50% = "
             f"{formatta_euro(risultato['base_contrib_ridotta'])}"
         )
-
+    
     st.write(
         f"**Aliquota IVS:** {formatta_percentuale(risultato['aliquota_ivs'], 0)} "
         f"(applicata sulla base dimezzata)"
     )
-
+    
     if altra_prev:
         st.info("✅ Aliquota IVS ridotta (24%) per altra previdenza/pensione")
-
+    
     st.write(f"**Contributi IVS:** {formatta_euro(risultato['contributi_ivs'])}")
     st.write(
         f"**Aliquota aggiuntiva:** {formatta_percentuale(risultato['aliquota_aggiuntiva'])} "
         f"(applicata sulla base piena)"
     )
     st.write(f"**Contributi aggiuntivi:** {formatta_euro(risultato['contributi_aggiuntivi'])}")
-
+    
     st.write(f"**Totale contributi INPS:** {formatta_euro(risultato['totale_contributi'])}")
-
+    
     # Ripartizione
     st.markdown("---")
     st.subheader("⚖️ Ripartizione Contributi")
-
+    
     col_r1, col_r2 = st.columns(2)
     with col_r1:
         st.metric(
@@ -353,17 +353,17 @@ with col_risultati:
             formatta_euro(risultato["contributi_societa"]),
             help="A carico di ASD/SSD"
         )
-
+    
     # ===== DETTAGLIO FISCALE =====
     st.markdown("---")
     st.subheader("🧮 Dettaglio Calcolo Fiscale (IRPEF)")
-
+    
     if risultato["franchigia_fiscale"] > 0:
         st.success(
             f"✅ **Esenzione fiscale (15.000€):** "
             f"-{formatta_euro(risultato['franchigia_fiscale'])}"
         )
-
+    
     st.write(f"**Reddito imponibile lordo:** {formatta_euro(risultato['reddito_imponibile'])}")
     st.write(
         f"**Contributi deducibili (1/3):** -{formatta_euro(risultato['contributi_lavoratore'])}"
@@ -371,39 +371,39 @@ with col_risultati:
     st.write(
         f"**Reddito imponibile netto IRPEF:** {formatta_euro(risultato['reddito_imponibile_netto'])}"
     )
-
+    
     st.write(f"**IRPEF (scaglioni 23-35-43%):** {formatta_euro(risultato['irpef'])}")
-
+    
     if risultato["addizionale_regionale"] > 0:
         st.write(
             f"**Addizionale regionale ({formatta_percentuale(addizionale_reg)}):** "
             f"{formatta_euro(risultato['addizionale_regionale'])}"
         )
-
+    
     if risultato["addizionale_comunale"] > 0:
         st.write(
             f"**Addizionale comunale ({formatta_percentuale(addizionale_com)}):** "
             f"{formatta_euro(risultato['addizionale_comunale'])}"
         )
-
+    
     st.write(f"**Totale imposte:** {formatta_euro(risultato['totale_imposte'])}")
-
+    
     # ===== RIEPILOGO FINALE =====
     st.markdown("---")
     st.subheader("📋 Riepilogo Finale Completo")
-
+    
     st.write(f"**Compenso lordo annuo:** {formatta_euro(risultato['compenso_lordo'])}")
     st.write(f"├─ Contributi INPS lavoratore: -{formatta_euro(risultato['contributi_lavoratore'])}")
     st.write(f"└─ Imposte (IRPEF + addizionali): -{formatta_euro(risultato['totale_imposte'])}")
-
+    
     st.success(f"**= NETTO LAVORATORE ANNUALE:** {formatta_euro(risultato['netto_lavoratore'])}")
     st.success(f"**= NETTO LAVORATORE MENSILE:** {formatta_euro(netto_mensile)}")
-
+    
     st.markdown("---")
     st.write("**Costo complessivo per la società sportiva (ASD/SSD):**")
     st.write(f"├─ Compenso lordo: {formatta_euro(risultato['compenso_lordo'])}")
     st.write(f"└─ Contributi INPS società (2/3): +{formatta_euro(risultato['contributi_societa'])}")
-
+    
     st.warning(f"**= COSTO TOTALE SOCIETÀ:** {formatta_euro(risultato['costo_totale_societa'])}")
 
 # =====================================================================
@@ -519,3 +519,4 @@ st.markdown("""
     <p>© 2025 – Tutti i diritti riservati</p>
 </div>
 """, unsafe_allow_html=True)
+
