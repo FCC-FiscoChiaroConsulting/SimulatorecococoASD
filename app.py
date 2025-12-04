@@ -1,12 +1,15 @@
-st.markdown("""
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-""", unsafe_allow_html=True)
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+
+# =====================================================================
+# META TAG PER CACHE (aiuta Chrome / mobile)
+# =====================================================================
+st.markdown("""
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+""", unsafe_allow_html=True)
 
 # =====================================================================
 # CONFIGURAZIONE PAGINA
@@ -146,7 +149,7 @@ def calcola_cococo_sportivo(compenso_lordo, altra_previdenza=False, addizionali_
     netto_lavoratore = compenso_lordo - totale_trattenute_lavoratore
     costo_totale_societa = compenso_lordo + contributi_societa
     
-    # Tax rate effettivo (bloccato tra 0 e 100 per evitare valori “fuori scala”)
+    # Tax rate effettivo (bloccato tra 0 e 100)
     if compenso_lordo > 0:
         tax_rate_raw = (totale_trattenute_lavoratore / compenso_lordo * 100.0)
         tax_rate = max(0.0, min(100.0, tax_rate_raw))
@@ -560,3 +563,4 @@ st.markdown("""
     <p>© 2025 – Tutti i diritti riservati</p>
 </div>
 """, unsafe_allow_html=True)
+
