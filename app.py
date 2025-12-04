@@ -74,6 +74,33 @@ def calcola_cococo_sportivo(compenso_lordo, altra_previdenza=False, addizionali_
     - Dimezzamento base contributiva eccedenza: 50% fino al 31/12/2027
     - Ripartizione contributi: 1/3 lavoratore, 2/3 società
     """
+
+    # Caso patologico: compenso nullo o negativo → tutto a zero
+    if compenso_lordo <= 0:
+        return {
+            "compenso_lordo": 0.0,
+            "franchigia_fiscale": 0.0,
+            "franchigia_contributiva": 0.0,
+            "base_contrib_grezza": 0.0,
+            "base_contrib_ridotta": 0.0,
+            "aliquota_ivs": 24.0 if altra_previdenza else 25.0,
+            "aliquota_aggiuntiva": 2.03,
+            "contributi_ivs": 0.0,
+            "contributi_aggiuntivi": 0.0,
+            "totale_contributi": 0.0,
+            "contributi_lavoratore": 0.0,
+            "contributi_societa": 0.0,
+            "reddito_imponibile": 0.0,
+            "reddito_imponibile_netto": 0.0,
+            "irpef": 0.0,
+            "addizionale_regionale": 0.0,
+            "addizionale_comunale": 0.0,
+            "totale_imposte": 0.0,
+            "totale_trattenute_lavoratore": 0.0,
+            "netto_lavoratore": 0.0,
+            "costo_totale_societa": 0.0,
+            "tax_rate": 0.0,
+        }
     
     # FRANCHIGIE
     franchigia_fiscale = min(compenso_lordo, 15000.0)
@@ -113,7 +140,12 @@ def calcola_cococo_sportivo(compenso_lordo, altra_previdenza=False, addizionali_
     netto_lavoratore = compenso_lordo - totale_trattenute_lavoratore
     costo_totale_societa = compenso_lordo + contributi_societa
     
-    tax_rate = (totale_trattenute_lavoratore / compenso_lordo * 100.0) if compenso_lordo > 0 else 0.0
+    # Tax rate effettivo (bloccato tra 0 e 100 per evitare valori “fuori scala”)
+    if compenso_lordo > 0:
+        tax_rate_raw = (totale_trattenute_lavoratore / compenso_lordo * 100.0)
+        tax_rate = max(0.0, min(100.0, tax_rate_raw))
+    else:
+        tax_rate = 0.0
     
     return {
         "compenso_lordo": compenso_lordo,
@@ -153,11 +185,11 @@ st.markdown("""
 
 # Info box
 st.info(
-    "**ℹ️ Collaborazioni Sportive (Co.Co.Co) – Riforma dello Sport (D.Lgs. 36/2021)**\\n\\n"
-    "🎯 **Esenzione fiscale:** fino a 15.000€ sui compensi da ASD/SSD\\n"
-    "💰 **Esenzione contributiva:** fino a 5.000€ sui compensi da ASD/SSD\\n"
-    "📉 **Dimezzamento 50%** della base contributiva sull'eccedenza fino al 31/12/2027\\n"
-    "⚖️ **Contributi ripartiti:** 1/3 collaboratore – 2/3 ASD/SSD\\n"
+    "**ℹ️ Collaborazioni Sportive (Co.Co.Co) – Riforma dello Sport (D.Lgs. 36/2021)**\n\n"
+    "🎯 **Esenzione fiscale:** fino a 15.000€ sui compensi da ASD/SSD\n"
+    "💰 **Esenzione contributiva:** fino a 5.000€ sui compensi da ASD/SSD\n"
+    "📉 **Dimezzamento 50%** della base contributiva sull'eccedenza fino al 31/12/2027\n"
+    "⚖️ **Contributi ripartiti:** 1/3 collaboratore – 2/3 ASD/SSD\n"
     "🧾 **La società sportiva è sostituto d'imposta:** ritenute, versamenti e Certificazione Unica"
 )
 
@@ -200,6 +232,9 @@ with col_input:
         key="compenso_cococo",
         help="Totale compensi annui corrisposti da ASD/SSD con contratto di collaborazione coordinata e continuativa."
     )
+    
+    if compenso_lordo == 0:
+        st.warning("Inserisci un compenso lordo annuo maggiore di zero per ottenere il calcolo completo.")
     
     st.markdown("---")
     
@@ -285,7 +320,7 @@ with col_risultati:
     col_m4, col_m5 = st.columns(2)
     
     with col_m4:
-        netto_mensile = risultato["netto_lavoratore"] / 12.0 if risultato["netto_lavoratore"] > 0 else 0
+        netto_mensile = max(0.0, risultato["netto_lavoratore"] / 12.0)
         st.metric(
             label="Netto Mensile",
             value=formatta_euro(netto_mensile),
@@ -507,7 +542,7 @@ with col_footer2:
 - 📱 Specializzati in collaborazioni sportive
 - ⚽ Riforma dello sport e lavoro dilettantistico
 
-**Versione:** 1.0 – Dicembre 2025
+**Versione:** 1.1 – Dicembre 2025
 **Normativa:** D.Lgs. 36/2021 + aggiornamenti 2025
     """)
 
@@ -519,4 +554,3 @@ st.markdown("""
     <p>© 2025 – Tutti i diritti riservati</p>
 </div>
 """, unsafe_allow_html=True)
-
